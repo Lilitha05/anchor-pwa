@@ -1,0 +1,8 @@
+/* Minimal reset (replaces the Tailwind preflight used in Figma Make). Loaded before styles.css. */
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0}
+h1,h2,h3,p,figure{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:center}
+a{color:inherit}
+svg{display:block}
+input,select,textarea{font:inherit;color:inherit}

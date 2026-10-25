@@ -1,0 +1,36 @@
+/* Additions on top of the Figma Make stylesheet (styles.css). Loaded last. */
+.calc-key.operator.active{background:#fff;color:#ff9f0a}
+.alert-card{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;width:100%;min-height:96px;margin-top:12px;padding:18px;text-align:left;border:2px solid var(--ink);border-radius:22px;background:#fff;color:var(--ink)}
+.alert-card .alert-icon{display:grid;width:48px;height:48px;place-items:center;border-radius:16px;color:#fff;background:var(--ink)}
+.alert-card strong{display:block;font-size:17px;margin-bottom:3px}
+.alert-card small{color:var(--muted);font-size:14px;line-height:1.4}
+select.text-field{appearance:auto}
+.stack{display:flex;flex-direction:column;gap:8px}
+.invite{display:inline-block;margin-top:4px;color:var(--teal);font-size:13px;font-weight:700}
+.muted-note{margin:14px 2px;color:var(--muted);font-size:14px;line-height:1.5}
+.page-content > * + .primary-button,.page-content > * + .secondary-button{margin-top:14px}
+.call-card.button-like{width:100%;text-align:left}
+.timer-clock.small{font-size:clamp(60px,18vw,84px)}
+.insight{padding:18px;border:1px solid var(--line);border-radius:18px;background:#fff}
+.insight p{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
+.field-error{margin:6px 2px;color:var(--red);font-size:13px}
+
+/* Toast message (Red state result) */
+.toast{position:fixed;top:max(14px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:50;max-width:min(92vw,380px);padding:11px 18px;border-radius:999px;font-size:14px;font-weight:700;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.toast.good{background:#0f6b64;color:#fff}
+.toast.bad{background:#913939;color:#fff}
+
+/* Stay With Me: centre the clock and everything under it */
+.active-timer-content{justify-content:center;align-items:center;text-align:center;width:min(100%,430px);margin:0 auto}
+.timer-clock{width:100%;text-align:center;letter-spacing:0;font-variant-numeric:tabular-nums}
+.timer-caption,.timer-contact{width:100%;text-align:center}
+.demo-expire-button{margin-top:18px}
+
+/* Calculator: full screen on every device, key text centred (the disguise should look like a real calculator) */
+body:has(.calculator){padding:0;background:#000}
+.calculator{width:100%;max-width:none;min-height:100dvh;max-height:none;margin:0;overflow:hidden;border-radius:0;box-shadow:none}
+.calc-key{text-align:center}
+.calc-key.zero{padding-left:0;justify-content:center}
+
+/* Stay With Me: put the "15 min" text in the middle of its button, not at the top */
+.duration{align-items:center}

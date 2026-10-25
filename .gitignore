@@ -1,0 +1,15 @@
+# libraries (anyone can get these again with npm install)
+node_modules
+
+# the built app. It has the alert server URL inside it, so it must NOT go on GitHub
+dist
+
+# my private settings (the alert server URL goes in here)
+.env
+.env.local
+.env.*.local
+
+# computer junk
+.DS_Store
+Thumbs.db
+*.log
