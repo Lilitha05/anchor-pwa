@@ -34,3 +34,10 @@ body:has(.calculator){padding:0;background:#000}
 
 /* Stay With Me: put the "15 min" text in the middle of its button, not at the top */
 .duration{align-items:center}
+
+/* small language drop-down in the top right corner of setup */
+.setup-top-right{display:flex;align-items:center;gap:10px}
+.lang-menu{height:44px;padding:0 14px;border:1px solid #d5dde0;border-radius:999px;background:#fff;color:inherit;font:inherit;font-weight:700;cursor:pointer}
+
+/* first-run hint on the calculator (only shown before a PIN is set) */
+.first-hint{margin:0;padding:18px 28px 0;text-align:center;font-size:15px;line-height:1.4;color:#8e8e93}

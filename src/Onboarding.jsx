@@ -3,9 +3,24 @@ import { getPosition } from './geo.js'
 import { clean } from './messages.js'
 import { Icon } from './icons.jsx'
 import { Toggle } from './ui.jsx'
+import { t } from './lang.js'
+import LanguageMenu from './LanguageMenu.jsx'
 
+// The roles are saved in English, so the rest of the app can compare them.
+// roleKeys turns a saved role into the key for its translated name.
 export const ROLES = ['Quiet check-in', 'Call me', 'Transport', 'Professional support']
+const roleKeys = {
+  'Quiet check-in': 'role_quiet',
+  'Call me': 'role_call',
+  'Transport': 'role_transport',
+  'Professional support': 'role_pro',
+}
 const MAX = 10 // the most people allowed in a Safe Circle
+
+// the translated name of a role
+export function roleName(role) {
+  return t(roleKeys[role])
+}
 
 // a PIN or alert code must be 4 to 8 digits
 export function isCode(text) {
@@ -14,8 +29,7 @@ export function isCode(text) {
 
 // the text we offer to send to a new contact, so they know what the messages mean
 export function inviteText(note) {
-  return 'I\'ve added you to my Safe Circle on a safety app. If I send you "' + note +
-    '" or "I need help now", please check on me or get help to me. Please don\'t call unless I ask.'
+  return t('inviteText', { note: note })
 }
 
 // ---------- Add, edit and remove Safe Circle contacts ----------
@@ -101,90 +115,90 @@ export function CircleEditor({ circle, note, onChange }) {
     setForm(blank)
   }
 
-  let limitText = 'You can add up to ' + MAX + '.'
+  let limitText = t('edUpTo', { max: MAX })
   if (full) {
-    limitText = 'Your circle is full.'
+    limitText = t('edFull')
   }
 
-  let saveLabel = 'Save person'
+  let saveLabel = t('edSave')
   if (editId !== null) {
-    saveLabel = 'Save changes'
+    saveLabel = t('edSaveChanges')
   }
 
   return (
     <>
       <div className="circle-list">
         {circle.map(function (c) {
-          let locationText = 'not shared'
+          let locationText = t('edNotShared')
           if (c.loc) {
-            locationText = 'shared'
+            locationText = t('edShared')
           }
           return (
             <div className="circle-card" key={c.id}>
               <div className="avatar">{c.name[0].toUpperCase()}</div>
               <div>
                 <strong>{c.name}</strong>
-                <small>{c.role}</small>
-                <span>{c.phone} · Location {locationText}</span>
+                <small>{roleName(c.role)}</small>
+                <span>{c.phone} · {t('edLocation', { x: locationText })}</span>
                 {note && (
                   <a className="invite" href={'sms:' + clean(c.phone) + '?&body=' + encodeURIComponent(inviteText(note))}>
-                    Send invite text
+                    {t('edInvite')}
                   </a>
                 )}
               </div>
               <div className="stack">
-                <button className="mini-button" onClick={function () { startEdit(c) }}>Edit</button>
-                <button className="mini-button" aria-label={'Remove ' + c.name} onClick={function () { remove(c.id) }}>Remove</button>
+                <button className="mini-button" onClick={function () { startEdit(c) }}>{t('edEdit')}</button>
+                <button className="mini-button" aria-label={t('edRemove') + ' ' + c.name} onClick={function () { remove(c.id) }}>{t('edRemove')}</button>
               </div>
             </div>
           )
         })}
       </div>
       {note && circle.length > 0 && (
-        <p className="muted-note">An invite text explains what your messages mean. It will appear in your message history.</p>
+        <p className="muted-note">{t('edInviteNote')}</p>
       )}
 
       {adding && (
         <div className="inline-form">
-          <label className="field-label" htmlFor="c-name">Name or nickname</label>
+          <label className="field-label" htmlFor="c-name">{t('edName')}</label>
           <input className="text-field" id="c-name" value={form.name} autoComplete="off" maxLength="30"
             onChange={function (e) { changeForm('name', e.target.value) }} />
-          <label className="field-label" htmlFor="c-phone">Phone number</label>
+          <label className="field-label" htmlFor="c-phone">{t('edPhone')}</label>
           <input className="text-field" id="c-phone" value={form.phone} inputMode="tel" autoComplete="off" maxLength="20"
             onChange={function (e) { changeForm('phone', e.target.value) }} />
-          {duplicate && <p className="field-error">This number is already in your circle.</p>}
-          <label className="field-label" htmlFor="c-role">How can they help?</label>
+          {duplicate && <p className="field-error">{t('edDup')}</p>}
+          <label className="field-label" htmlFor="c-role">{t('edRole')}</label>
           <select className="text-field" id="c-role" value={form.role}
             onChange={function (e) { changeForm('role', e.target.value) }}>
             {ROLES.map(function (r) {
-              return <option key={r}>{r}</option>
+              return <option key={r} value={r}>{roleName(r)}</option>
             })}
           </select>
-          <Toggle title="Share my location with them" detail="Included only when you send an alert or check-in."
-            checked={form.loc} onChange={changeLocation} />
+          <Toggle title={t('edShare')} detail={t('edShareP')} checked={form.loc} onChange={changeLocation} />
           <button className="primary-button full" disabled={!canSave} onClick={save}>{saveLabel}</button>
           {(editId !== null || circle.length > 0) && (
-            <button className="text-button centered" onClick={cancel}>Cancel</button>
+            <button className="text-button centered" onClick={cancel}>{t('cancel')}</button>
           )}
         </div>
       )}
       {!adding && !full && (
         <button className="secondary-button full add-button" onClick={function () { setAdding(true) }}>
-          <span>+</span> Add someone
+          <span>+</span> {t('edAdd')}
         </button>
       )}
-      <p className="muted-note">{circle.length} of {MAX} added. {limitText}</p>
+      <p className="muted-note">{t('edCount', { n: circle.length, max: MAX, limit: limitText })}</p>
     </>
   )
 }
 
 // small label showing how many people are in the circle, for example "3 of 10"
 export function CountPill({ n }) {
-  return <span className="count-pill">{n} of {MAX}</span>
+  return <span className="count-pill">{t('xOfY', { n: n, max: MAX })}</span>
 }
 
 // ---------- First-time setup (a few steps) ----------
-export default function Onboarding({ initial, pendingPin, onDone, exit }) {
+// The first step is choosing the language, so everything after it is in that language.
+export default function Onboarding({ initial, pendingPin, onDone, exit, lang, onLang }) {
   // the list of steps. The "pin" step only appears when a new PIN was just typed.
   const steps = []
   if (pendingPin) {
@@ -229,13 +243,13 @@ export default function Onboarding({ initial, pendingPin, onDone, exit }) {
   }
 
   // text on the main button
-  let buttonLabel = 'Continue'
+  let buttonLabel = t('cont')
   if (step === 'welcome') {
-    buttonLabel = 'I understand'
+    buttonLabel = t('understand')
   } else if (step === 'circle' && p.circle.length === 0) {
-    buttonLabel = 'Skip for now'
+    buttonLabel = t('skip')
   } else if (isLast) {
-    buttonLabel = 'Finish setup'
+    buttonLabel = t('finish')
   }
 
   function next() {
@@ -249,9 +263,9 @@ export default function Onboarding({ initial, pendingPin, onDone, exit }) {
   async function allowLocation() {
     const position = await getPosition(8000)
     if (position) {
-      setGeoText('Location works.')
+      setGeoText(t('locOk'))
     } else {
-      setGeoText('Could not get a location. Check your phone settings and allow it for this site.')
+      setGeoText(t('locFail'))
     }
   }
 
@@ -261,77 +275,81 @@ export default function Onboarding({ initial, pendingPin, onDone, exit }) {
     <main className="app-screen onboarding">
       <div className="setup-top">
         <div className="brand-mark"><Icon name="shield" size={23} /></div>
-        <button className="exit-button" onClick={exit}>Exit</button>
+        <div className="setup-top-right">
+          <LanguageMenu lang={lang} onChange={onLang} />
+          <button className="exit-button" onClick={exit}>{t('exit')}</button>
+        </div>
       </div>
       <div className="step-row">
-        <span aria-live="polite">Step {i + 1} of {steps.length}</span>
+        <span aria-live="polite">{t('step', { i: i + 1, n: steps.length })}</span>
         <div className="step-track"><div className="step-fill" style={{ width: progress + '%' }} /></div>
       </div>
 
       <section className="setup-content">
+
         {step === 'pin' && (
           <>
-            <div className="eyebrow">Confirm your PIN</div>
-            <h1>Type it once more.</h1>
-            <p className="lead">This stops a typo from locking you out. Anchor is only saved once the two match.</p>
+            <div className="eyebrow">{t('pinTitle')}</div>
+            <h1>{t('pinH1')}</h1>
+            <p className="lead">{t('pinLead')}</p>
             <label className="field-label" htmlFor="pin2">PIN</label>
             <input className="text-field" id="pin2" type="password" inputMode="numeric" maxLength="8" autoComplete="off" value={pin2}
               onChange={function (e) { setPin2(e.target.value.replace(/\D/g, '')) }} />
             {pin2.length >= pendingPin.length && pin2 !== pendingPin && (
-              <p className="field-error">That does not match the PIN you typed on the calculator.</p>
+              <p className="field-error">{t('pinMismatch')}</p>
             )}
-            <p className="fine-print">If you forget your PIN, the only way back in is to clear this app's data and start again.</p>
+            <p className="fine-print">{t('pinFine')}</p>
           </>
         )}
 
         {step === 'welcome' && (
           <>
-            <div className="eyebrow">Welcome to Anchor</div>
-            <h1>A quiet way to reach people you trust.</h1>
-            <p className="lead">Anchor adapts to what you can safely do in the moment. You stay in control of what is shared and when.</p>
+            <div className="eyebrow">{t('wEyebrow')}</div>
+            <h1>{t('wH1')}</h1>
+            <p className="lead">{t('wLead')}</p>
             <div className="notice">
               <Icon name="lock" />
               <div>
-                <strong>Your privacy comes first</strong>
-                <p>No account and no tracking. Everything you set up stays on this phone.</p>
+                <strong>{t('wNoticeT')}</strong>
+                <p>{t('wNoticeP')}</p>
               </div>
             </div>
-            <p className="fine-print">No app can promise to be completely undetectable, especially on a shared phone. If you think someone is checking your phone, choose Red.</p>
+            <p className="fine-print">{t('wFine')}</p>
           </>
         )}
 
         {step === 'circle' && (
           <>
-            <div className="eyebrow">Your Safe Circle</div>
-            <h1>Choose people you trust.</h1>
-            <p className="lead">Add 2 to 10 people, say how each can help, and choose who can see your location. You can skip this and add them later.</p>
+            <div className="eyebrow">{t('cEyebrow')}</div>
+            <h1>{t('cH1')}</h1>
+            <p className="lead">{t('cLead')}</p>
             <CircleEditor circle={p.circle} onChange={function (c) { setField('circle', c) }} />
           </>
         )}
 
         {step === 'note' && (
           <>
-            <div className="eyebrow">Your check-in</div>
-            <h1>Agree on a simple note.</h1>
-            <p className="lead">Choose ordinary words your trusted person will understand. Anchor sends it in Amber and Red.</p>
-            <label className="field-label" htmlFor="note">Check-in note</label>
+            <div className="eyebrow">{t('nEyebrow')}</div>
+            <h1>{t('nH1')}</h1>
+            <p className="lead">{t('nLead')}</p>
+            <label className="field-label" htmlFor="note">{t('nLabel')}</label>
             <textarea className="text-field" id="note" rows={4} maxLength="140" value={p.note}
               onChange={function (e) { setField('note', e.target.value) }} />
-            <p className="field-help">Tell your circle what this note means before you need it.</p>
+            <p className="field-help">{t('nHelp')}</p>
           </>
         )}
 
         {step === 'panic' && (
           <>
-            <div className="eyebrow">Your alert code</div>
-            <h1>A second code for emergencies.</h1>
-            <p className="lead">Type it on the calculator and press = to send an alert with your location. You get 5 seconds to cancel. It must differ from your PIN.</p>
-            <label className="field-label" htmlFor="code">Alert code (4 to 8 digits, optional)</label>
+            <div className="eyebrow">{t('aEyebrow')}</div>
+            <h1>{t('aH1')}</h1>
+            <p className="lead">{t('aLead')}</p>
+            <label className="field-label" htmlFor="code">{t('aLabel')}</label>
             <input className="text-field" id="code" type="password" inputMode="numeric" maxLength="8" autoComplete="off" value={code}
               onChange={function (e) { setCode(e.target.value.replace(/\D/g, '')) }} />
-            {code !== '' && !isCode(code) && <p className="field-error">Use 4 to 8 digits.</p>}
-            {code !== '' && code === pendingPin && <p className="field-error">This must be different from your PIN.</p>}
-            <label className="field-label" htmlFor="amsg" style={{ marginTop: 16 }}>Alert message</label>
+            {code !== '' && !isCode(code) && <p className="field-error">{t('aDigits')}</p>}
+            {code !== '' && code === pendingPin && <p className="field-error">{t('aDiffer')}</p>}
+            <label className="field-label" htmlFor="amsg" style={{ marginTop: 16 }}>{t('aMsgLabel')}</label>
             <textarea className="text-field" id="amsg" rows={3} maxLength="140" value={p.alertMsg}
               onChange={function (e) { setField('alertMsg', e.target.value) }} />
           </>
@@ -339,26 +357,27 @@ export default function Onboarding({ initial, pendingPin, onDone, exit }) {
 
         {step === 'choices' && (
           <>
-            <div className="eyebrow">Your choices</div>
-            <h1>Only share what feels safe.</h1>
-            <p className="lead">Location is read only when you send an alert or check-in, and only shared with people you chose.</p>
+            <div className="eyebrow">{t('chEyebrow')}</div>
+            <h1>{t('chH1')}</h1>
+            <p className="lead">{t('chLead')}</p>
             <div className="notice subtle" style={{ marginTop: 0, marginBottom: 14 }}>
               <Icon name="shield" />
               <div>
-                <strong>Allow location now</strong>
-                <p>Your phone will ask once. If you say no, alerts still go, without a location.</p>
-                <button className="mini-button" style={{ marginTop: 10 }} onClick={allowLocation}>Allow location</button>
+                <strong>{t('locNoticeT')}</strong>
+                <p>{t('locNoticeP')}</p>
+                <button className="mini-button" style={{ marginTop: 10 }} onClick={allowLocation}>{t('locBtn')}</button>
                 {geoText && <p aria-live="polite">{geoText}</p>}
               </div>
             </div>
-            <Toggle title="Share anonymous support trends" detail="Coarse area and category only, never your message. Off unless you turn it on."
+            <Toggle title={t('trendsT')} detail={t('trendsP')}
               checked={p.trends} onChange={function (value) { setField('trends', value) }} />
+            <p className="muted-note">{t('trendsWhy')}</p>
           </>
         )}
       </section>
 
       <div className="setup-actions">
-        {i > 0 && <button className="text-button" onClick={function () { setI(i - 1) }}>Back</button>}
+        {i > 0 && <button className="text-button" onClick={function () { setI(i - 1) }}>{t('backShort')}</button>}
         <button className="primary-button" disabled={!canContinue()} onClick={next}>
           {buttonLabel}<Icon name={isLast ? 'check' : 'chevron'} />
         </button>

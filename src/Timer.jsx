@@ -3,6 +3,7 @@ import { Icon } from './icons.jsx'
 import { getTimer, setTimer, clearTimer } from './timer.js'
 import { getPosition } from './geo.js'
 import SendScreen from './Alert.jsx'
+import { t } from './lang.js'
 
 // turns a number of seconds into mm:ss
 function formatTime(seconds) {
@@ -32,7 +33,7 @@ export default function Timer({ profile, back, exit, go }) {
   }, [])
 
   // text for who will be told
-  let who = circle.length + ' people'
+  let who = t('people', { n: circle.length })
   if (circle.length === 1) {
     who = circle[0].name
   }
@@ -55,10 +56,10 @@ export default function Timer({ profile, back, exit, go }) {
     return (
       <section className="timer-result">
         <div className="success-icon"><Icon name="check" size={29} /></div>
-        <div className="eyebrow">Confirmed by the alert server</div>
-        <h1>Your Safe Circle was notified.</h1>
-        <p className="lead">Your check-in ended and the alert server confirmed it sent your message.</p>
-        <button className="primary-button full" onClick={finishSent}>Return to calculator</button>
+        <div className="eyebrow">{t('confirmed')}</div>
+        <h1>{t('tNotified')}</h1>
+        <p className="lead">{t('tNotifiedLead')}</p>
+        <button className="primary-button full" onClick={finishSent}>{t('returnCalc')}</button>
       </section>
     )
   }
@@ -81,16 +82,16 @@ export default function Timer({ profile, back, exit, go }) {
 
     return (
       <section className="active-timer-content">
-        <div className="active-timer-label"><span />Safety check-in active</div>
-        <p className="timer-caption">Check in before the timer ends</p>
+        <div className="active-timer-label"><span />{t('tActive')}</div>
+        <p className="timer-caption">{t('tBefore')}</p>
         <div className="timer-clock" aria-live="off">{formatTime(secondsLeft)}</div>
         <p className="timer-contact">
-          {who} will be told if you don't check in.
-          <br />Keep Anchor open in your browser. It can't count down once the browser is closed.
+          {t('tWillTell', { who: who })}
+          <br />{t('tKeepOpen')}
         </p>
-        <button className="safe-button" onClick={imSafe}><Icon name="check" />I'm safe</button>
-        <button className="alert-now-button" onClick={alertNow}>Send alert now</button>
-        <button className="demo-expire-button" onClick={endTimerNow}>Demo: end the timer now</button>
+        <button className="safe-button" onClick={imSafe}><Icon name="check" />{t('tSafe')}</button>
+        <button className="alert-now-button" onClick={alertNow}>{t('tAlertNow')}</button>
+        <button className="demo-expire-button" onClick={endTimerNow}>{t('tDemo')}</button>
       </section>
     )
   }
@@ -114,12 +115,12 @@ export default function Timer({ profile, back, exit, go }) {
 
   // first letter for the little circle, and the line saying who is told
   let initial = '?'
-  let whoText = 'No one yet'
+  let whoText = t('tNoOne')
   if (circle.length > 0) {
     initial = circle[0].name[0].toUpperCase()
     whoText = who
     if (circle.length > 1) {
-      whoText = circle.length + ' people in your Safe Circle'
+      whoText = t('tPeopleCircle', { n: circle.length })
     }
   }
 
@@ -128,12 +129,12 @@ export default function Timer({ profile, back, exit, go }) {
   return (
     <section className="page-content">
       <div className="timer-hero-icon"><Icon name="clock" size={25} /></div>
-      <div className="eyebrow">Plan ahead</div>
-      <h1>Let someone stay with you.</h1>
-      <p className="lead compact">Start a private timer when a journey, meeting or situation feels uncertain.</p>
+      <div className="eyebrow">{t('tPlan')}</div>
+      <h1>{t('tH1')}</h1>
+      <p className="lead compact">{t('tLead')}</p>
 
       <div className="timer-section">
-        <label className="field-label">Check in after</label>
+        <label className="field-label">{t('tAfter')}</label>
         <div className="duration-options">
           {options.map(function (d) {
             let className = 'duration'
@@ -142,7 +143,7 @@ export default function Timer({ profile, back, exit, go }) {
             }
             return (
               <button key={d} className={className} onClick={function () { setMinutes(d) }}>
-                <strong>{d}</strong><span>min</span>
+                <strong>{d}</strong><span>{t('tMin')}</span>
               </button>
             )
           })}
@@ -152,22 +153,18 @@ export default function Timer({ profile, back, exit, go }) {
       <div className="timer-plan-card">
         <div className="timer-plan-row">
           <span className="avatar">{initial}</span>
-          <span><small>Who is told</small><strong>{whoText}</strong></span>
-          <span className="status-pill">Safe Circle</span>
+          <span><small>{t('tWho')}</small><strong>{whoText}</strong></span>
+          <span className="status-pill">{t('safeCircle')}</span>
         </div>
         <div className="divider" />
-        <div className="timer-message"><small>Message</small><p>"{profile.timerMsg}"</p></div>
+        <div className="timer-message"><small>{t('aMessage')}</small><p>"{profile.timerMsg}"</p></div>
       </div>
 
       <button className="primary-button full" disabled={circle.length === 0} onClick={startTimer}>
-        <Icon name="clock" />Start {minutes}-minute check-in
+        <Icon name="clock" />{t('tStart', { m: minutes })}
       </button>
-      {circle.length === 0 && <p className="field-error">Add someone to your Safe Circle first.</p>}
-      <p className="timer-honesty">
-        This timer only runs while Anchor stays open. If it ends without a check-in, Anchor sends through
-        the alert server if one is set up. Otherwise it prepares the message and waits for you to send it,
-        because a web page cannot send for you.
-      </p>
+      {circle.length === 0 && <p className="field-error">{t('tAddFirst')}</p>}
+      <p className="timer-honesty">{t('tHonest')}</p>
     </section>
   )
 }

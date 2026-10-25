@@ -3,6 +3,7 @@ import { getPosition } from './geo.js'
 import { logEvent } from './storage.js'
 import { buildBody, postMessages, clean } from './messages.js'
 import { Icon } from './icons.jsx'
+import { t } from './lang.js'
 
 // This screen sends an alert, a quiet check-in (Amber) or a finished Stay With Me timer.
 //
@@ -102,7 +103,7 @@ export default function SendScreen({ contacts, profile, kind, countdown = 0, onD
   }, [phase])
 
   // short text for who it is going to
-  let who = contacts.length + ' people'
+  let who = t('people', { n: contacts.length })
   if (contacts.length === 1) {
     who = contacts[0].name
   }
@@ -111,42 +112,42 @@ export default function SendScreen({ contacts, profile, kind, countdown = 0, onD
   if (contacts.length === 0) {
     return (
       <section className="success-content">
-        <div className="eyebrow">Safe Circle</div>
-        <h1>No one in your circle yet.</h1>
-        <p className="lead">Add a trusted person in the Circle tab so a message has somewhere to go.</p>
-        <button className="primary-button full" onClick={onDone}>Return to calculator</button>
+        <div className="eyebrow">{t('safeCircle')}</div>
+        <h1>{t('noCircleTitle')}</h1>
+        <p className="lead">{t('noCircleLead')}</p>
+        <button className="primary-button full" onClick={onDone}>{t('returnCalc')}</button>
       </section>
     )
   }
 
   // ---------- Countdown (a chance to cancel) ----------
   if (phase === 'counting') {
-    let heading = 'Check-in'
+    let heading = t('checkin')
     if (kind === 'alert') {
-      heading = 'Alert'
+      heading = t('alert')
     }
     return (
       <section className="success-content">
         <div className="eyebrow">{heading}</div>
         <div className="timer-clock" aria-live="assertive">{left}</div>
-        <p className="lead">Sending to {who}. Cancel if this was a mistake.</p>
-        <button className="primary-button full" onClick={function () { setLeft(0) }}>Send now</button>
-        <button className="secondary-button full" style={{ marginTop: 10 }} onClick={onDone}>Cancel</button>
+        <p className="lead">{t('sendingTo', { who: who })}</p>
+        <button className="primary-button full" onClick={function () { setLeft(0) }}>{t('sendNow')}</button>
+        <button className="secondary-button full" style={{ marginTop: 10 }} onClick={onDone}>{t('cancel')}</button>
       </section>
     )
   }
 
   // ---------- Getting the location ----------
   if (phase === 'working') {
-    let workingTitle = 'Getting ready…'
+    let workingTitle = t('gettingReady')
     if (wantsLocation) {
-      workingTitle = 'Getting your location…'
+      workingTitle = t('gettingLocation')
     }
     return (
       <section className="success-content">
-        <div className="eyebrow">One moment</div>
+        <div className="eyebrow">{t('oneMoment')}</div>
         <h1>{workingTitle}</h1>
-        <p className="lead">This can take a few seconds.</p>
+        <p className="lead">{t('fewSeconds')}</p>
       </section>
     )
   }
@@ -155,9 +156,9 @@ export default function SendScreen({ contacts, profile, kind, countdown = 0, onD
   let locationText = ''
   if (wantsLocation) {
     if (pos) {
-      locationText = 'Your location was included for the contacts you chose.'
+      locationText = t('locIncluded')
     } else {
-      locationText = 'Your location could not be found, and the message says so.'
+      locationText = t('locMissing')
     }
   }
 
@@ -166,28 +167,25 @@ export default function SendScreen({ contacts, profile, kind, countdown = 0, onD
     return (
       <section className="success-content">
         <div className="success-icon"><Icon name="check" size={30} /></div>
-        <div className="eyebrow">Confirmed by the alert server</div>
-        <h1>Your message was sent.</h1>
+        <div className="eyebrow">{t('confirmed')}</div>
+        <h1>{t('msgSent')}</h1>
         <p className="lead">{locationText}</p>
-        <button className="primary-button full" onClick={onDone}>Return to calculator</button>
+        <button className="primary-button full" onClick={onDone}>{t('returnCalc')}</button>
       </section>
     )
   }
 
   // ---------- No server: the person sends the texts by hand ----------
-  let eyebrow = 'Ready to send'
+  let eyebrow = t('readyToSend')
   if (kind === 'timer') {
-    eyebrow = 'Your check-in timer ended'
+    eyebrow = t('timerEnded')
   }
 
   return (
     <section className="page-content">
       <div className="eyebrow">{eyebrow}</div>
-      <h1>Your message is ready.</h1>
-      <p className="lead">
-        Nothing has been sent yet. This phone cannot send it silently, so tap each name and press send
-        in your messages app. The text will stay in your message history.
-      </p>
+      <h1>{t('msgReady')}</h1>
+      <p className="lead">{t('readyLead')}</p>
       {wantsLocation && <p className="muted-note">{locationText}</p>}
       <div className="call-list">
         {contacts.map(function (c) {
@@ -197,15 +195,15 @@ export default function SendScreen({ contacts, profile, kind, countdown = 0, onD
             <a key={c.id} className="call-card" href={link} onClick={function () { setTapped(tapped.concat([c.id])) }}>
               <span className="call-icon"><Icon name={wasTapped ? 'check' : 'send'} /></span>
               <span>
-                <strong>Text {c.name}</strong>
-                <small>{wasTapped ? 'Opened. Press send in your messages.' : c.role}</small>
+                <strong>{t('textName', { name: c.name })}</strong>
+                <small>{wasTapped ? t('opened') : c.role}</small>
               </span>
               <Icon name="chevron" />
             </a>
           )
         })}
       </div>
-      <button className="primary-button full" style={{ marginTop: 18 }} onClick={onDone}>Return to calculator</button>
+      <button className="primary-button full" style={{ marginTop: 18 }} onClick={onDone}>{t('returnCalc')}</button>
     </section>
   )
 }

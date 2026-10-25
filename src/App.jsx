@@ -8,6 +8,7 @@ import Insights from './Insights.jsx'
 import Support from './Support.jsx'
 import Settings from './Settings.jsx'
 import Toast from './Toast.jsx'
+import { getLang, setLang, t } from './lang.js'
 import { TopBar, BottomNav } from './ui.jsx'
 import { getProfile, saveProfile, setPin, setAlertCode, logEvent } from './storage.js'
 import { checkTimer } from './timer.js'
@@ -17,10 +18,10 @@ import { sendQuietly } from './messages.js'
 
 // Titles shown in the top bar for some screens
 const TITLES = {
-  green: 'I can speak',
-  amber: 'Quiet check-in',
-  alert: 'Alert',
-  timer: 'Stay With Me',
+  green: 'titleGreen',
+  amber: 'titleAmber',
+  alert: 'titleAlert',
+  timer: 'titleTimer',
 }
 
 // Which bottom tab is highlighted for each screen
@@ -37,6 +38,7 @@ export default function App() {
   const [profile, setProfile] = useState(getProfile)
   const [pendingPin, setPendingPin] = useState(null) // the first PIN, waiting to be confirmed in setup
   const [toast, setToast] = useState(null) // { text, good } or null
+  const [lang, setLangState] = useState(getLang) // en, xh or af
 
   // saves the profile and updates the screen
   function update(newProfile) {
@@ -44,11 +46,22 @@ export default function App() {
     setProfile(newProfile)
   }
 
+  // changes the language and redraws the screen
+  function changeLang(code) {
+    setLang(code)
+    setLangState(code)
+  }
+
   // goes back to the calculator
   function exit() {
     setPendingPin(null)
     setScreen('calculator')
   }
+
+  // tell the browser which language the page is in (helps screen readers)
+  useEffect(function () {
+    document.documentElement.lang = lang
+  }, [lang])
 
   useEffect(function () {
     // if the person leaves the app (switches tab or app), show the calculator
@@ -76,15 +89,29 @@ export default function App() {
     }, seconds * 1000)
   }
 
+  // Emergency code: send the alert message straight away, no countdown, then show the result
+  async function sendAlertNow() {
+    logEvent('alert')
+    const saved = getProfile()
+    const result = await sendQuietly(saved.circle, saved.alertMsg)
+    if (result === 'sent') {
+      showToast(t('toastAlertSent'), true, 1.5)
+    } else if (result === 'nocircle') {
+      showToast(t('toastNoCircle'), false, 5)
+    } else {
+      showToast(t('toastAlertFailed'), false, 6)
+    }
+  }
+
   // Red: send the agreed note in the background and show the result in a toast
   async function sendRed() {
     const result = await sendQuietly(profile.circle, profile.note)
     if (result === 'sent') {
-      showToast('Check-in sent', true, 3)
+      showToast(t('toastSent'), true, 1.5)
     } else if (result === 'nocircle') {
-      showToast('No one in your Safe Circle yet', false, 5)
+      showToast(t('toastNoCircle'), false, 5)
     } else {
-      showToast('Check-in NOT sent. Could not reach the alert server.', false, 6)
+      showToast(t('toastFailed'), false, 6)
     }
   }
 
@@ -116,8 +143,7 @@ export default function App() {
       }
     }
     function startAlert() {
-      setProfile(getProfile())
-      setScreen('alert')
+      sendAlertNow()
     }
     return (
       <>
@@ -140,7 +166,7 @@ export default function App() {
       setPendingPin(null)
       setScreen('home')
     }
-    return <Onboarding initial={profile} pendingPin={pendingPin} onDone={finishSetup} exit={exit} />
+    return <Onboarding initial={profile} pendingPin={pendingPin} onDone={finishSetup} exit={exit} lang={lang} onLang={changeLang} />
   }
 
   // ---------- All the other screens ----------
@@ -168,25 +194,28 @@ export default function App() {
       <section className="page-content">
         <div className="section-title-row">
           <div>
-            <div className="eyebrow">People you trust</div>
-            <h1>Your Safe Circle</h1>
+            <div className="eyebrow">{t('circEyebrow')}</div>
+            <h1>{t('circTitle')}</h1>
           </div>
           <CountPill n={profile.circle.length} />
         </div>
-        <p className="lead compact">These people can support you in ways you agree on together.</p>
+        <p className="lead compact">{t('circLead')}</p>
         <CircleEditor circle={profile.circle} note={profile.note} onChange={changeCircle} />
       </section>
     )
   } else if (screen === 'support') {
     body = <Support />
   } else if (screen === 'settings') {
-    body = <Settings profile={profile} onChange={update} onExit={exit} go={setScreen} />
+    body = <Settings profile={profile} onChange={update} onExit={exit} go={setScreen} lang={lang} onLang={changeLang} />
   } else if (screen === 'insights') {
     body = <Insights />
   }
 
   const activeTab = NAV_SCREENS[screen]
-  let title = TITLES[screen]
+  let title = ''
+  if (TITLES[screen]) {
+    title = t(TITLES[screen])
+  }
   if (!title && activeTab) {
     title = 'Anchor'
   }

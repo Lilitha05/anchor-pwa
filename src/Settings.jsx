@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { isCode } from './Onboarding.jsx'
 import { Icon } from './icons.jsx'
 import { Toggle } from './ui.jsx'
+import { t } from './lang.js'
+import LanguagePicker from './LanguagePicker.jsx'
 import { checkPin, setPin, setAlertCode, hasAlertCode, wipeAll } from './storage.js'
 
 // removes everything that is not a digit
@@ -9,13 +11,21 @@ function onlyDigits(text) {
   return text.replace(/\D/g, '')
 }
 
-export default function Settings({ profile, onChange, onExit, go }) {
+// Settings is a menu. Each row opens its own page, like Insights does.
+export default function Settings({ profile, onChange, onExit, go, lang, onLang }) {
+  const [page, setPage] = useState('menu') // menu, language, messages, pin, code, privacy, delete
   const [message, setMessage] = useState('')
   const [currentPin, setCurrentPin] = useState('')
   const [newPin, setNewPin] = useState('')
   const [newPin2, setNewPin2] = useState('')
   const [code, setCode] = useState('')
   const [sure, setSure] = useState(false) // true after "Delete everything" is pressed once
+
+  // opens a page and clears any old message
+  function open(name) {
+    setMessage('')
+    setPage(name)
+  }
 
   // changes one field of the profile (for example note, alertMsg or timerMsg)
   function changeField(field, value) {
@@ -27,42 +37,42 @@ export default function Settings({ profile, onChange, onExit, go }) {
   async function changePin() {
     const correct = await checkPin(currentPin)
     if (!correct) {
-      setMessage('Your current PIN is not right.')
+      setMessage(t('pWrong'))
       return
     }
     if (!isCode(newPin)) {
-      setMessage('Use 4 to 8 digits.')
+      setMessage(t('aDigits'))
       return
     }
     if (newPin !== newPin2) {
-      setMessage('The new PINs do not match.')
+      setMessage(t('pNoMatch'))
       return
     }
     await setPin(newPin)
     setCurrentPin('')
     setNewPin('')
     setNewPin2('')
-    setMessage('PIN changed.')
+    setMessage(t('pDone'))
   }
 
   async function changeCode() {
     if (code === '') {
       await setAlertCode('')
-      setMessage('Alert code removed.')
+      setMessage(t('cRemoved'))
       return
     }
     if (!isCode(code)) {
-      setMessage('Use 4 to 8 digits for the alert code.')
+      setMessage(t('aDigits'))
       return
     }
     const sameAsPin = await checkPin(code)
     if (sameAsPin) {
-      setMessage('The alert code must be different from your PIN.')
+      setMessage(t('aDiffer'))
       return
     }
     await setAlertCode(code)
     setCode('')
-    setMessage('Alert code saved.')
+    setMessage(t('cSaved'))
   }
 
   function deleteEverything() {
@@ -70,81 +80,170 @@ export default function Settings({ profile, onChange, onExit, go }) {
     onExit()
   }
 
-  let alertCodeStatus = '(not set)'
-  if (hasAlertCode()) {
-    alertCodeStatus = '(set)'
+  // the message box shown at the top of a page
+  let messageBox = null
+  if (message) {
+    messageBox = (
+      <div className="notice subtle" aria-live="polite" style={{ marginTop: 0 }}>
+        <Icon name="shield" />
+        <div><strong>{message}</strong></div>
+      </div>
+    )
   }
 
+  // the "back to settings" button at the top of every page except the menu
+  let backButton = null
+  if (page !== 'menu') {
+    backButton = (
+      <button className="text-button" onClick={function () { open('menu') }}>‹ {t('nav_settings')}</button>
+    )
+  }
+
+  // ---------- The menu ----------
+  if (page === 'menu') {
+    const rows = [
+      ['language', t('mLang')],
+      ['messages', t('mMsgs')],
+      ['pin', t('mPin')],
+      ['code', t('mCode')],
+      ['insights', t('mInsights')],
+      ['privacy', t('mPrivacy')],
+      ['delete', t('mDelete')],
+    ]
+    return (
+      <section className="page-content">
+        <div className="eyebrow">{t('chEyebrow')}</div>
+        <h1>{t('sTitle')}</h1>
+        <div className="settings-list">
+          {rows.map(function (row) {
+            return (
+              <button key={row[0]} onClick={function () { if (row[0] === 'insights') { go('insights') } else { open(row[0]) } }}>
+                <span>{row[1]}</span><Icon name="chevron" />
+              </button>
+            )
+          })}
+        </div>
+      </section>
+    )
+  }
+
+  // ---------- Language ----------
+  if (page === 'language') {
+    return (
+      <section className="page-content">
+        {backButton}
+        <div className="eyebrow">{t('nav_settings')}</div>
+        <h1>{t('mLang')}</h1>
+        <LanguagePicker lang={lang} onChange={onLang} />
+      </section>
+    )
+  }
+
+  // ---------- Messages ----------
+  if (page === 'messages') {
+    return (
+      <section className="page-content">
+        {backButton}
+        <div className="eyebrow">{t('nav_settings')}</div>
+        <h1>{t('mMsgs')}</h1>
+        <p className="lead compact">{t('sMsgsLead')}</p>
+        <div className="inline-form">
+          <label className="field-label" htmlFor="s-note">{t('sNote')}</label>
+          <textarea className="text-field" id="s-note" rows={2} maxLength="140" value={profile.note}
+            onChange={function (e) { changeField('note', e.target.value) }} />
+          <label className="field-label" htmlFor="s-alert">{t('aMsgLabel')}</label>
+          <textarea className="text-field" id="s-alert" rows={2} maxLength="140" value={profile.alertMsg}
+            onChange={function (e) { changeField('alertMsg', e.target.value) }} />
+          <label className="field-label" htmlFor="s-timer">{t('sTimerMsg')}</label>
+          <textarea className="text-field" id="s-timer" rows={2} maxLength="140" value={profile.timerMsg}
+            onChange={function (e) { changeField('timerMsg', e.target.value) }} />
+        </div>
+      </section>
+    )
+  }
+
+  // ---------- Change PIN ----------
+  if (page === 'pin') {
+    return (
+      <section className="page-content">
+        {backButton}
+        <div className="eyebrow">{t('nav_settings')}</div>
+        <h1>{t('mPin')}</h1>
+        {messageBox}
+        <div className="inline-form">
+          <label className="field-label" htmlFor="p-cur">{t('pCur')}</label>
+          <input className="text-field" id="p-cur" type="password" inputMode="numeric" maxLength="8" value={currentPin}
+            onChange={function (e) { setCurrentPin(onlyDigits(e.target.value)) }} />
+          <label className="field-label" htmlFor="p-1">{t('pNew')}</label>
+          <input className="text-field" id="p-1" type="password" inputMode="numeric" maxLength="8" value={newPin}
+            onChange={function (e) { setNewPin(onlyDigits(e.target.value)) }} />
+          <label className="field-label" htmlFor="p-2">{t('pNew2')}</label>
+          <input className="text-field" id="p-2" type="password" inputMode="numeric" maxLength="8" value={newPin2}
+            onChange={function (e) { setNewPin2(onlyDigits(e.target.value)) }} />
+          <button className="secondary-button full" onClick={changePin}>{t('mPin')}</button>
+        </div>
+      </section>
+    )
+  }
+
+  // ---------- Alert code ----------
+  if (page === 'code') {
+    let status = t('cNotSet')
+    if (hasAlertCode()) {
+      status = t('cSet')
+    }
+    return (
+      <section className="page-content">
+        {backButton}
+        <div className="eyebrow">{t('nav_settings')}</div>
+        <h1>{t('mCode')} {status}</h1>
+        <p className="lead compact">{t('cLead2')}</p>
+        {messageBox}
+        <div className="inline-form">
+          <label className="field-label" htmlFor="a-code">{t('cNew')}</label>
+          <input className="text-field" id="a-code" type="password" inputMode="numeric" maxLength="8" value={code}
+            onChange={function (e) { setCode(onlyDigits(e.target.value)) }} />
+          <button className="secondary-button full" onClick={changeCode}>{t('cSave')}</button>
+        </div>
+      </section>
+    )
+  }
+
+  // ---------- Privacy and trends ----------
+  if (page === 'privacy') {
+    return (
+      <section className="page-content">
+        {backButton}
+        <div className="eyebrow">{t('nav_settings')}</div>
+        <h1>{t('mPrivacy')}</h1>
+        <div className="settings-group">
+          <Toggle title={t('trendsName')} detail={t('trendsDetail')}
+            checked={profile.trends} onChange={function (value) { changeField('trends', value) }} />
+        </div>
+        <p className="muted-note">{t('trendsWhy')}</p>
+        <div className="honest-note">
+          <Icon name="shield" />
+          <p>{t('honest')}</p>
+        </div>
+      </section>
+    )
+  }
+
+  // ---------- Delete everything ----------
   return (
     <section className="page-content">
-      <div className="eyebrow">Your choices</div>
-      <h1>Privacy and settings</h1>
-      {message && (
-        <div className="notice subtle" aria-live="polite" style={{ marginTop: 0 }}>
-          <Icon name="shield" />
-          <div><strong>{message}</strong></div>
-        </div>
-      )}
-
-      <div className="settings-list">
-        <button onClick={function () { go('insights') }}><span>Insights</span><Icon name="chevron" /></button>
-      </div>
-
-      <div className="inline-form">
-        <label className="field-label" htmlFor="s-note">Check-in note (Amber and Red)</label>
-        <textarea className="text-field" id="s-note" rows={2} maxLength="140" value={profile.note}
-          onChange={function (e) { changeField('note', e.target.value) }} />
-        <label className="field-label" htmlFor="s-alert">Alert message</label>
-        <textarea className="text-field" id="s-alert" rows={2} maxLength="140" value={profile.alertMsg}
-          onChange={function (e) { changeField('alertMsg', e.target.value) }} />
-        <label className="field-label" htmlFor="s-timer">Check-in timer message</label>
-        <textarea className="text-field" id="s-timer" rows={2} maxLength="140" value={profile.timerMsg}
-          onChange={function (e) { changeField('timerMsg', e.target.value) }} />
-      </div>
-
-      <div className="settings-group">
-        <Toggle title="Anonymous support trends" detail="Coarse area and category only. Nothing is sent in this prototype yet."
-          checked={profile.trends} onChange={function (value) { changeField('trends', value) }} />
-      </div>
-
-      <div className="inline-form">
-        <strong>Change PIN</strong>
-        <label className="field-label" htmlFor="p-cur">Current PIN</label>
-        <input className="text-field" id="p-cur" type="password" inputMode="numeric" maxLength="8" value={currentPin}
-          onChange={function (e) { setCurrentPin(onlyDigits(e.target.value)) }} />
-        <label className="field-label" htmlFor="p-1">New PIN</label>
-        <input className="text-field" id="p-1" type="password" inputMode="numeric" maxLength="8" value={newPin}
-          onChange={function (e) { setNewPin(onlyDigits(e.target.value)) }} />
-        <label className="field-label" htmlFor="p-2">New PIN again</label>
-        <input className="text-field" id="p-2" type="password" inputMode="numeric" maxLength="8" value={newPin2}
-          onChange={function (e) { setNewPin2(onlyDigits(e.target.value)) }} />
-        <button className="secondary-button full" onClick={changePin}>Change PIN</button>
-      </div>
-
-      <div className="inline-form" style={{ marginTop: 14 }}>
-        <strong>Alert code {alertCodeStatus}</strong>
-        <label className="field-label" htmlFor="a-code">New alert code (leave empty to remove)</label>
-        <input className="text-field" id="a-code" type="password" inputMode="numeric" maxLength="8" value={code}
-          onChange={function (e) { setCode(onlyDigits(e.target.value)) }} />
-        <button className="secondary-button full" onClick={changeCode}>Save alert code</button>
-      </div>
-
-      <div className="honest-note">
-        <Icon name="shield" />
-        <p>Anchor cannot guarantee complete privacy on shared phones, in browser or message history, or from someone who knows your PIN.</p>
-      </div>
-
+      {backButton}
+      <div className="eyebrow">{t('nav_settings')}</div>
+      <h1>{t('mDelete')}</h1>
       {!sure && (
-        <button className="danger-button" onClick={function () { setSure(true) }}>Delete everything and start again</button>
+        <button className="danger-button" onClick={function () { setSure(true) }}>{t('dDelete')}</button>
       )}
       {sure && (
         <div className="inline-form">
-          <strong>Delete everything?</strong>
-          <p className="muted-note" style={{ margin: 0 }}>
-            This removes your PIN, Safe Circle, settings, timer and history from this phone. It cannot be undone.
-          </p>
-          <button className="danger-button" onClick={deleteEverything}>Yes, delete everything</button>
-          <button className="text-button centered" onClick={function () { setSure(false) }}>No, keep my data</button>
+          <strong>{t('dAsk')}</strong>
+          <p className="muted-note" style={{ margin: 0 }}>{t('dWarn')}</p>
+          <button className="danger-button" onClick={deleteEverything}>{t('dYes')}</button>
+          <button className="text-button centered" onClick={function () { setSure(false) }}>{t('dNo')}</button>
         </div>
       )}
     </section>

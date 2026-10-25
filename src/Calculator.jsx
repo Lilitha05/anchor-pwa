@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { t } from './lang.js'
 import { hasPin, checkPin, checkAlertCode, lockedUntil, registerFail, clearFails } from './storage.js'
 
 // Each key is [label, type]. The type is only used for the colour.
@@ -45,6 +46,7 @@ export default function Calculator({ onUnlock, onAlert, onFirstPin }) {
   const [saved, setSaved] = useState(null) // the number before the operator
   const [op, setOp] = useState(null)
   const [fresh, setFresh] = useState(true) // true when the next digit starts a new number
+  const showHint = !hasPin() // only before a PIN exists. Once setup is finished it never shows again.
   const typed = useRef('') // digits typed since the last operator (this could be the PIN)
 
   async function press(k) {
@@ -143,6 +145,7 @@ export default function Calculator({ onUnlock, onAlert, onFirstPin }) {
   return (
     <main className="calculator" aria-label="Calculator">
       <div className="calc-shell">
+        {showHint && <p className="first-hint">{t('firstHint')}</p>}
         <div className="calc-display" aria-live="polite">{display}</div>
         <div className="calc-grid">
           {keys.map(function (item) {

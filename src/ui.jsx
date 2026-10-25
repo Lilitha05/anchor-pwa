@@ -1,4 +1,5 @@
 import { Icon } from './icons.jsx'
+import { t } from './lang.js'
 
 // The bar at the top of every screen inside the app
 export function TopBar({ title, onBack, onExit }) {
@@ -6,14 +7,14 @@ export function TopBar({ title, onBack, onExit }) {
     <header className="topbar">
       <div className="topbar-side">
         {onBack && (
-          <button className="icon-button" onClick={onBack} aria-label="Go back">
+          <button className="icon-button" onClick={onBack} aria-label={t('back')}>
             <Icon name="arrow" />
           </button>
         )}
       </div>
       <div className="topbar-title">{title}</div>
       <div className="topbar-side topbar-side-end">
-        <button className="exit-button" onClick={onExit}>Exit</button>
+        <button className="exit-button" onClick={onExit}>{t('exit')}</button>
       </div>
     </header>
   )
@@ -42,7 +43,7 @@ export function BottomNav({ active, go }) {
         return (
           <button key={screen} className={className} onClick={function () { go(screen) }}>
             <Icon name={icon} size={21} />
-            <span>{label}</span>
+            <span>{t('nav_' + screen)}</span>
           </button>
         )
       })}

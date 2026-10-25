@@ -4,6 +4,8 @@ import { Icon } from './icons.jsx'
 import { getTimer } from './timer.js'
 import { clean } from './messages.js'
 import SendScreen from './Alert.jsx'
+import { t } from './lang.js'
+import { roleName } from './Onboarding.jsx'
 
 // turns a number of seconds into mm:ss, for example 905 -> "15:05"
 function formatTime(seconds) {
@@ -29,28 +31,28 @@ export function Home({ go, pick }) {
   }, [])
 
   // text for the Stay With Me card: [small title, big line, small line]
-  let card = ['Feeling uneasy?', 'Start a safety check-in', 'Set a timer and ask your Safe Circle to watch out for you.']
+  let card = [t('cardIdle1'), t('cardIdle2'), t('cardIdle3')]
   if (record && record.status === 'active') {
     const secondsLeft = Math.max(0, Math.ceil((record.dueAt - now) / 1000))
-    card = ['Check-in active', formatTime(secondsLeft) + ' remaining', 'The timer only runs while Anchor stays open in your browser.']
+    card = [t('cardActive1'), t('cardActive2', { time: formatTime(secondsLeft) }), t('cardActive3')]
   } else if (record && record.status === 'sent') {
-    card = ['Safe Circle notified', 'The alert server confirmed it', 'Open to review.']
+    card = [t('cardSent1'), t('cardSent2'), t('cardSent3')]
   } else if (record && record.status === 'due') {
-    card = ['Check-in ended', 'Nothing has been sent yet', 'Open to send your message now.']
+    card = [t('cardDue1'), t('cardDue2'), t('cardDue3')]
   }
 
   // [screen, label, title, detail, icon]
   const choices = [
-    ['green', 'Green', 'I can speak', 'See people and services you can call.', 'mic'],
-    ['amber', 'Amber', 'I can type quietly', 'Prepare a discreet check-in to someone you trust.', 'message'],
-    ['red', 'Red', 'My phone may be watched', 'Quietly tells your Safe Circle, then Anchor closes straight away.', 'eyeOff'],
+    ['green', t('green'), t('titleGreen'), t('greenDetail'), 'mic'],
+    ['amber', t('amber'), t('amberChoice'), t('amberDetail'), 'message'],
+    ['red', t('red'), t('redChoice'), t('redDetail'), 'eyeOff'],
   ]
 
   return (
     <section className="home-content">
-      <div className="home-kicker"><span className="pulse-dot" />You're in control</div>
-      <h1>What can you safely do right now?</h1>
-      <p className="lead compact">Choose the option that feels safest. You can leave at any time.</p>
+      <div className="home-kicker"><span className="pulse-dot" />{t('inControl')}</div>
+      <h1>{t('homeTitle')}</h1>
+      <p className="lead compact">{t('homeLead')}</p>
 
       <button className="safety-timer-card" onClick={function () { go('timer') }}>
         <span className="timer-card-icon"><Icon name="clock" size={23} /></span>
@@ -82,13 +84,13 @@ export function Home({ go, pick }) {
       <button className="alert-card" onClick={function () { go('alert') }}>
         <span className="alert-icon"><Icon name="send" size={22} /></span>
         <span>
-          <strong>Send an alert now</strong>
-          <small>Message and location to your Safe Circle, with 5 seconds to cancel.</small>
+          <strong>{t('alertCardTitle')}</strong>
+          <small>{t('alertCardDetail')}</small>
         </span>
         <Icon name="chevron" />
       </button>
 
-      <div className="privacy-line"><Icon name="lock" size={16} />Your choices stay on this device.</div>
+      <div className="privacy-line"><Icon name="lock" size={16} />{t('privacy')}</div>
     </section>
   )
 }
@@ -104,15 +106,15 @@ export function Green({ circle }) {
     <section className="page-content">
       <div className="state-heading green">
         <span className="large-state-dot" />
-        <div><span>Green</span><h1>Who would you like to call?</h1></div>
+        <div><span>{t('green')}</span><h1>{t('gHeading')}</h1></div>
       </div>
-      <p className="lead compact">Tapping a number opens your phone's dialler. You decide whether to call.</p>
+      <p className="lead compact">{t('gLead')}</p>
       <div className="call-list">
         {callers.map(function (c) {
           return (
             <a key={c.id} className="call-card" href={'tel:' + clean(c.phone)}>
               <span className="call-icon"><Icon name="call" /></span>
-              <span><strong>{c.name}</strong><small>Safe Circle · Call me</small></span>
+              <span><strong>{c.name}</strong><small>{t('safeCircle')} · {t('role_call')}</small></span>
               <Icon name="chevron" />
             </a>
           )
@@ -128,9 +130,9 @@ export function Green({ circle }) {
         })}
       </div>
       {callers.length === 0 && (
-        <p className="muted-note">Add someone with the role "Call me" in the Circle tab to see them here.</p>
+        <p className="muted-note">{t('gAdd')}</p>
       )}
-      <p className="verification-note">Check these numbers against official sources before relying on them.</p>
+      <p className="verification-note">{t('gNote')}</p>
     </section>
   )
 }
@@ -159,41 +161,41 @@ export function Amber({ profile, onDone, back }) {
     return <SendScreen contacts={list} profile={profile} kind="checkin" onDone={onDone} />
   }
 
-  let locationText = 'Not included'
+  let locationText = t('aNotIncluded')
   if (contact.loc) {
-    locationText = 'Included'
+    locationText = t('aIncluded')
   }
 
   // the text depends on whether an alert server has been connected (see TWILIO-SETUP.md)
-  let howSending = "Your phone can't send this silently. Anchor prepares the text and you press send."
+  let howSending = t('aHowManual')
   if (import.meta.env.VITE_ALERT_URL) {
-    howSending = 'Anchor sends this for you through the alert server. It only says "sent" if the server confirms.'
+    howSending = t('aHowServer')
   }
 
   return (
     <section className="page-content">
       <div className="state-heading amber">
         <span className="large-state-dot" />
-        <div><span>Amber</span><h1>Review before you send.</h1></div>
+        <div><span>{t('amber')}</span><h1>{t('aHeading')}</h1></div>
       </div>
       <div className="summary-card">
-        <div className="summary-row"><span>To</span><strong>{contact.name} · {contact.role}</strong></div>
+        <div className="summary-row"><span>{t('aTo')}</span><strong>{contact.name} · {roleName(contact.role)}</strong></div>
         <div className="divider" />
-        <div className="summary-row message"><span>Message</span><strong>"{profile.note}"</strong></div>
+        <div className="summary-row message"><span>{t('aMessage')}</span><strong>"{profile.note}"</strong></div>
         <div className="divider" />
-        <div className="summary-row"><span>Location</span><strong>{locationText}</strong></div>
+        <div className="summary-row"><span>{t('aLocation')}</span><strong>{locationText}</strong></div>
       </div>
       <div className="notice subtle">
         <Icon name="shield" />
         <div>
-          <strong>How sending works</strong>
+          <strong>{t('aHow')}</strong>
           <p>{howSending}</p>
         </div>
       </div>
       <button className="primary-button full send-button" onClick={function () { setSending(true) }}>
-        <Icon name="send" />Prepare my check-in
+        <Icon name="send" />{t('aPrepare')}
       </button>
-      <button className="text-button centered" onClick={back}>Not now</button>
+      <button className="text-button centered" onClick={back}>{t('aNotNow')}</button>
     </section>
   )
 }

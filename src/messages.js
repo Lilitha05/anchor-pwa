@@ -1,4 +1,5 @@
 import { getPosition } from './geo.js'
+import { t } from './lang.js'
 
 // Helper functions for building and sending the messages.
 
@@ -13,9 +14,9 @@ export function buildBody(contact, base, pos) {
   let text = base
   if (contact.loc) {
     if (pos) {
-      text = text + ' My location: https://maps.google.com/?q=' + pos.lat.toFixed(5) + ',' + pos.lng.toFixed(5)
+      text = text + ' ' + t('msgLocation') + ' https://maps.google.com/?q=' + pos.lat.toFixed(5) + ',' + pos.lng.toFixed(5)
     } else {
-      text = text + ' (I could not get my location.)'
+      text = text + ' (' + t('msgNoLoc') + ')'
     }
   }
   return text
