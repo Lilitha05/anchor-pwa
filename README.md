@@ -32,7 +32,7 @@ A web page can't send a text by itself, so the app sends the messages to a small
 Twilio Function (`server/send-alert.js`) and Twilio sends the SMS.
 Anchor only says "sent" when that server says it worked. If it can't reach the server it says "not sent".
 The Twilio keys stay inside Twilio and are never in this code.
-Setup steps are in `TWILIO-SETUP.md`.
+
 
 ## Run it on your computer
     npm install
