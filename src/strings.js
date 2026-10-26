@@ -1,5 +1,6 @@
 import { setup } from './strings_setup.js'
 import { more } from './strings_more.js'
+import { support } from './strings_support.js'
 
 // All the words the app shows, in three languages.
 // Every language needs the same keys. {name} style pieces are filled in by t() in lang.js.
@@ -115,7 +116,7 @@ const base = {
 
 // join the main words and the setup words
 export const text = {
-  en: Object.assign({}, base.en, setup.en, more.en),
-  xh: Object.assign({}, base.xh, setup.xh, more.xh),
-  af: Object.assign({}, base.af, setup.af, more.af),
+  en: Object.assign({}, base.en, setup.en, more.en, support.en),
+  xh: Object.assign({}, base.xh, setup.xh, more.xh, support.xh),
+  af: Object.assign({}, base.af, setup.af, more.af, support.af),
 }

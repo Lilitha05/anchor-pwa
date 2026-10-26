@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { getLog, clearLog, getProfile } from './storage.js'
+import { t } from './lang.js'
 
 const DAY = 86400000 // one day in milliseconds
 
@@ -40,8 +41,8 @@ export function buildInsights(log, circleSize, now = Date.now()) {
   const alerts = countType(lastWeek, 'alert')
   if (alerts >= 1) {
     results.push({
-      title: 'You used an alert recently',
-      why: 'You sent ' + alerts + ' alert(s) in the last 7 days. Check that your circle replied, and consider reviewing your plan.',
+      title: t('i1T'),
+      why: t('i1W', { n: alerts }),
     })
   }
 
@@ -49,8 +50,8 @@ export function buildInsights(log, circleSize, now = Date.now()) {
   const missed = countType(lastTwoWeeks, 'missed')
   if (missed >= 2) {
     results.push({
-      title: 'Check-in timers ended without a check-in',
-      why: missed + ' timers ended unconfirmed in 14 days. You may want a shorter timer, or to tell your circle what to do when one ends.',
+      title: t('i2T'),
+      why: t('i2W', { n: missed }),
     })
   }
 
@@ -58,8 +59,8 @@ export function buildInsights(log, circleSize, now = Date.now()) {
   const reds = countType(lastTwoWeeks, 'red')
   if (reds >= 3) {
     results.push({
-      title: 'You often needed to stay hidden',
-      why: 'You chose Red ' + reds + ' times in 14 days. A support organisation can help you plan safely. See the Support list.',
+      title: t('i3T'),
+      why: t('i3W', { n: reds }),
     })
   }
 
@@ -69,24 +70,24 @@ export function buildInsights(log, circleSize, now = Date.now()) {
   })
   if (lastTwoWeeks.length >= 4 && evening.length / lastTwoWeeks.length >= 0.6) {
     results.push({
-      title: 'Most of your activity is in the evening',
-      why: evening.length + ' of ' + lastTwoWeeks.length + ' uses in 14 days were between 6pm and 5am. You could agree an evening plan with your circle.',
+      title: t('i4T'),
+      why: t('i4W', { a: evening.length, b: lastTwoWeeks.length }),
     })
   }
 
   // rule 5: more use than the week before
   if (lastWeek.length >= 3 && lastWeek.length > weekBefore.length) {
     results.push({
-      title: 'More activity than last week',
-      why: lastWeek.length + ' uses this week, compared with ' + weekBefore.length + ' the week before.',
+      title: t('i5T'),
+      why: t('i5W', { a: lastWeek.length, b: weekBefore.length }),
     })
   }
 
   // rule 6: very small circle
   if (lastTwoWeeks.length > 0 && circleSize < 2) {
     results.push({
-      title: 'Your Safe Circle is small',
-      why: 'You have fewer than 2 people in your circle. Adding another person gives you more options.',
+      title: t('i6T'),
+      why: t('i6W'),
     })
   }
 
@@ -105,14 +106,12 @@ export default function Insights() {
 
   return (
     <section className="page-content">
-      <div className="eyebrow">On this phone only</div>
-      <h1>Insights</h1>
-      <p className="lead compact">
-        Anchor looks for patterns in how you use it. Nothing leaves your phone, and no message text is ever recorded.
-      </p>
+      <div className="eyebrow">{t('iEyebrow')}</div>
+      <h1>{t('iTitle')}</h1>
+      <p className="lead compact">{t('iLead')}</p>
       <div className="service-list">
         {items.length === 0 && (
-          <div className="insight"><strong>Nothing to show yet</strong><p>Insights appear as you use Anchor.</p></div>
+          <div className="insight"><strong>{t('iNone')}</strong><p>{t('iNoneP')}</p></div>
         )}
         {items.map(function (item) {
           return (
@@ -123,9 +122,9 @@ export default function Insights() {
           )
         })}
       </div>
-      <p className="muted-note">{log.length} uses recorded (time and type only).</p>
+      <p className="muted-note">{t('iCount', { n: log.length })}</p>
       {log.length > 0 && (
-        <button className="secondary-button full" onClick={clearHistory}>Clear this history</button>
+        <button className="secondary-button full" onClick={clearHistory}>{t('iClear')}</button>
       )}
     </section>
   )

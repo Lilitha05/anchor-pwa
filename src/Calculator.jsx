@@ -64,6 +64,7 @@ export default function Calculator({ onUnlock, onAlert, onFirstPin }) {
     }
 
     if (k === '.') {
+      typed.current = '' // a decimal point breaks up a code, so 43.21 is not 4321
       if (fresh) {
         setDisplay('0.')
         setFresh(false)
@@ -83,11 +84,13 @@ export default function Calculator({ onUnlock, onAlert, onFirstPin }) {
     }
 
     if (k === '±') {
+      typed.current = '' // so does ±
       setDisplay(format(-parseFloat(display)))
       return
     }
 
     if (k === '%') {
+      typed.current = '' // and %
       setDisplay(format(parseFloat(display) / 100))
       return
     }
@@ -112,6 +115,11 @@ export default function Calculator({ onUnlock, onAlert, onFirstPin }) {
         if (await checkAlertCode(code)) {
           clearFails()
           typed.current = ''
+          // clear the display so the code does not stay on the screen
+          setDisplay('0')
+          setSaved(null)
+          setOp(null)
+          setFresh(true)
           onAlert()
           return
         }

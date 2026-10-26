@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Calculator from './Calculator.jsx'
 import { Home, Green, Amber } from './Flows.jsx'
 import Onboarding, { CircleEditor, CountPill } from './Onboarding.jsx'
@@ -39,6 +39,7 @@ export default function App() {
   const [pendingPin, setPendingPin] = useState(null) // the first PIN, waiting to be confirmed in setup
   const [toast, setToast] = useState(null) // { text, good } or null
   const [lang, setLangState] = useState(getLang) // en, xh or af
+  const toastTimer = useRef(null) // so a new message replaces the old one cleanly
 
   // saves the profile and updates the screen
   function update(newProfile) {
@@ -83,15 +84,23 @@ export default function App() {
 
   // shows a message at the top for a few seconds, then removes it
   function showToast(text, good, seconds) {
+    clearTimeout(toastTimer.current)
     setToast({ text: text, good: good })
-    setTimeout(function () {
+    toastTimer.current = setTimeout(function () {
       setToast(null)
     }, seconds * 1000)
+  }
+
+  // shows "Sending…" straight away. The real result (sent or not sent) replaces it.
+  function showSending() {
+    clearTimeout(toastTimer.current)
+    setToast({ text: t('toastSending'), good: true })
   }
 
   // Emergency code: send the alert message straight away, no countdown, then show the result
   async function sendAlertNow() {
     logEvent('alert')
+    showSending()
     const saved = getProfile()
     const result = await sendQuietly(saved.circle, saved.alertMsg)
     if (result === 'sent') {
@@ -105,6 +114,7 @@ export default function App() {
 
   // Red: send the agreed note in the background and show the result in a toast
   async function sendRed() {
+    showSending()
     const result = await sendQuietly(profile.circle, profile.note)
     if (result === 'sent') {
       showToast(t('toastSent'), true, 1.5)

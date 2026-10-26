@@ -6,6 +6,7 @@ import { clean } from './messages.js'
 import SendScreen from './Alert.jsx'
 import { t } from './lang.js'
 import { roleName } from './Onboarding.jsx'
+import { helplineName } from './dataText.js'
 
 // turns a number of seconds into mm:ss, for example 905 -> "15:05"
 function formatTime(seconds) {
@@ -123,7 +124,7 @@ export function Green({ circle }) {
           return (
             <a key={h.id} className="call-card" href={'tel:' + h.number}>
               <span className="call-icon"><Icon name="call" /></span>
-              <span><strong>{h.label}</strong><small>{h.number}</small></span>
+              <span><strong>{helplineName(h)}</strong><small>{h.number}</small></span>
               <Icon name="chevron" />
             </a>
           )
