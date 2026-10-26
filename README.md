@@ -1,6 +1,7 @@
 # Anchor
 
-A safety app for people in unsafe homes. It looks and works like a normal calculator,
+A discreet safety app for anyone at risk of gender-based violence, at home, on the move, at work or on campus,
+who can't safely ask for help out loud. It looks and works like a normal calculator,
 and installs on the phone as "Calculator". A secret code opens the real app behind it.
 
 Made by team **Cipher Circle** for the FNB App of the Year Hackathon 2026
