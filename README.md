@@ -60,3 +60,5 @@ and the other buttons prepare the text for you to send by hand.
 
 ## Built with
 React, Vite, a service worker (so it installs like an app), Twilio.
+
+**:)**
